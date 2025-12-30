@@ -2,7 +2,7 @@ import sqlite3
 import json
 from datetime import datetime
 
-DB_NAME = "bot_database.db"
+DB_NAME = "/tmp/bot_database.db"
 
 def init_db():
     conn = sqlite3.connect(DB_NAME)
@@ -38,12 +38,22 @@ def init_db():
     # Table for group registration
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS groups (
-            chat_id INTEGER PRIMARY KEY,
-            chat_title TEXT
+            chat_id INTEGER,
+            message_thread_id INTEGER,
+            chat_title TEXT,
+            PRIMARY KEY (chat_id, message_thread_id)
         )
     ''')
-    
     conn.commit()
+    
+    # Migration: Add message_thread_id to groups if it doesn't exist
+    try:
+        cursor.execute('ALTER TABLE groups ADD COLUMN message_thread_id INTEGER')
+        conn.commit()
+    except sqlite3.OperationalError:
+        # Column already exists
+        pass
+        
     conn.close()
 
 def add_question(creator_id, question_text, options, correct_option_id):
@@ -106,17 +116,17 @@ def get_results(poll_id):
     conn.close()
     return rows
 
-def register_group(chat_id, chat_title):
+def register_group(chat_id, chat_title, message_thread_id=None):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute('INSERT OR REPLACE INTO groups (chat_id, chat_title) VALUES (?, ?)', (chat_id, chat_title))
+    cursor.execute('INSERT OR REPLACE INTO groups (chat_id, chat_title, message_thread_id) VALUES (?, ?, ?)', (chat_id, chat_title, message_thread_id))
     conn.commit()
     conn.close()
 
 def get_registered_groups():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute('SELECT chat_id, chat_title FROM groups')
+    cursor.execute('SELECT chat_id, chat_title, message_thread_id FROM groups')
     rows = cursor.fetchall()
     conn.close()
     return rows

@@ -8,8 +8,26 @@ A Telegram bot to create questions, post them as non-anonymous polls in a group,
 - Track individual user votes (non-anonymous).
 - View a summary of results for each poll.
 
-## Setup
+## Vercel Deployment (Webhooks)
 
+1. **Deploy to Vercel:**
+   - Push your code to a GitHub repository.
+   - Connect the repository to Vercel.
+   - Add `TELEGRAM_BOT_TOKEN` to **Environment Variables** in Vercel.
+
+2. **Set the Webhook:**
+   - Once deployed, get your Vercel URL (e.g., `https://your-app.vercel.app`).
+   - Call the Telegram API to set the webhook:
+     ```
+     https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=https://your-app.vercel.app/api/webhook
+     ```
+
+> [!IMPORTANT]
+> **Database Persistence:** Vercel is stateless. Your registered groups and results will be lost whenever the serverless function restarts. For a permanent solution, you should connect a remote database like Supabase.
+
+## Local Usage (Polling)
+
+If you want to run it locally for testing:
 1. **Get a Bot Token:**
    - Message [@BotFather](https://t.me/BotFather) on Telegram.
    - Create a new bot and copy the API Token.
@@ -23,10 +41,11 @@ A Telegram bot to create questions, post them as non-anonymous polls in a group,
    pip install -r requirements.txt
    ```
 
-4. **Run the Bot:**
+4. **Run Locally:**
    ```bash
    python bot.py
    ```
+   *Note: Local running uses a local server at http://0.0.0.0:8000. You would need a tool like `ngrok` to test webhooks locally.*
 
 ## Usage
 
